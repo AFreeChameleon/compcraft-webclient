@@ -1,0 +1,29 @@
+{
+  "name": "compcraft-webclient",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "12.1.4",
+    "react": "18.0.0",
+    "react-dom": "18.0.0",
+    "redux": "^4.1.2",
+    "redux-thunk": "^2.4.1",
+    "socket.io-client": "^4.4.1",
+    "styled-components": "^5.3.5"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.23",
+    "@types/react": "17.0.27",
+    "@types/react-redux": "^7.1.19",
+    "@types/redux": "^3.6.0",
+    "eslint": "8.13.0",
+    "eslint-config-next": "12.1.4",
+    "typescript": "^4.6.3"
+  }
+}

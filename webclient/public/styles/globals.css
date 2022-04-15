@@ -1,0 +1,19 @@
+@font-face {
+  font-family: Minercraftory;
+  src: url('../fonts/MINERCRAFTORY.TTF');
+}
+
+@font-face {
+  font-family: Minecraft;
+  src: url('../fonts/MINECRAFTREGULAR.OTF');
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+* {
+  font-family: Minecraft;
+}
