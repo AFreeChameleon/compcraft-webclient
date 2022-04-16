@@ -1,4 +1,5 @@
 import WebS from 'ws';
+import { routeAction } from './lib/actions';
 
 import { addRoom } from './lib/room';
 
@@ -6,10 +7,12 @@ const wss: any = new WebS.Server({port:8000}, () => console.log('Websocket serve
 
 wss.on('connection', (socket: any) => {
     console.log('Connected', socket)
-    const roomCode = addRoom();
-    wss.broadcast(roomCode);
     socket.on("message", (msg: string) => {
-        wss.broadcast(msg);
+        const req = JSON.parse(msg);
+        if (!req.action) {
+            return;
+        }
+        routeAction(req, socket);
     })
 });
 
