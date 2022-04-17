@@ -1,13 +1,12 @@
 import crypto from 'crypto';
 
-const rooms: string[] = [];
 const roomList: any = {
 
 }
 
 const createRoomUUID = () => {
     let uuid = crypto.randomBytes(4).toString('hex');
-    while (rooms.includes(uuid)) {
+    while (Object.keys(roomList).includes(uuid)) {
         uuid = crypto.randomBytes(4).toString('hex')
     }
     return uuid;

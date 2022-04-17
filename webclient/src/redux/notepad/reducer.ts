@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
     NOTEPAD_SET_FILE_CONTENT,
     NOTEPAD_SET_FILE_NAME,
@@ -5,27 +6,45 @@ import {
     NOTEPAD_SET_ZINDEX,
     NOTEPAD_SET_WINDOW_POSITION,
     NOTEPAD_SET_WINDOW_SIZE,
-    NOTEPAD_SET_WINDOW_OPEN,
     NOTEPAD_SET_WINDOW_STATE,
+
+    NOTEPAD_CREATE_WINDOW,
+    NOTEPAD_DELETE_WINDOW,
 } from './types';
 
+const setWindowProperty = (state: any, id: string, key: string, value: any) => {
+    const windows = _.cloneDeep(state.windows);
+    const idx = state.windows.findIndex((w) => w.id === id);
+    windows.splice(
+        idx, 
+        {
+            ...state.windows[idx],
+            [key]: value
+        }
+    );
+    return windows;
+}
+
+const setWindowFileProperty = (state: any, id: string, key: string, value: any) => {
+    const windows = _.cloneDeep(state.windows);
+    const idx = state.windows.findIndex((w) => w.id === id);
+    windows.splice(
+        idx, 
+        {
+            ...state.windows[idx],
+            file: {
+                ...state.windows[idx].file,
+                [key]: value
+            }
+        }
+    );
+    return windows;
+}
+
 const defaultState = {
-    zIndex: 0,
-    windowSize: [
-        800,
-        600
-    ],
-    windowPosition: [
-        0,
-        0
-    ],
-    open: false,
-    windowState: 'windowed',
-    file: {
-        name: '',
-        content: '',
-        path: ''
-    }
+    windows: [
+        // type Window goes in here
+    ]
 }
 
 const reducer = (state = defaultState, action) => {
@@ -33,51 +52,70 @@ const reducer = (state = defaultState, action) => {
         case NOTEPAD_SET_FILE_CONTENT:
             return {
                 ...state,
-                file: {
-                    ...state.file,
-                    content: action.value
-                }
+                windows: [
+                    ...setWindowFileProperty(state, action.id, 'content', action.value),
+                ]
             }
         case NOTEPAD_SET_FILE_NAME:
             return {
                 ...state,
-                file: {
-                    ...state.file,
-                    name: action.value
-                }
+                windows: [
+                    ...setWindowFileProperty(state, action.id, 'name', action.value),
+                ]
             }
         case NOTEPAD_SET_FILE_PATH:
             return {
                 ...state,
-                file: {
-                    ...state.file,
-                    path: action.value
-                }
+                windows: [
+                    ...setWindowFileProperty(state, action.id, 'path', action.value),
+                ]
             }
         case NOTEPAD_SET_ZINDEX:
             return {
                 ...state,
-                zIndex: action.value
+                windows: [
+                    ...setWindowProperty(state, action.id, 'zIndex', action.value),
+                ]
+            }
+        case NOTEPAD_CREATE_WINDOW:
+            return {
+                ...state,
+                windows: [
+                    ...state.windows,
+                    {
+                        id: state.windows.length ? 
+                            Math.max(...state.windows.map((w) => w.id)) + 1 : 1,
+                        ...action.window
+                    }
+                ]
+            }
+        case NOTEPAD_DELETE_WINDOW:
+            return {
+                ...state,
+                windows: [
+                    ...state.windows.filter((w) => w.id !== action.id)
+                ]
             }
         case NOTEPAD_SET_WINDOW_POSITION:
             return {
                 ...state,
-                windowPosition: [action.x, action.y],
+                windows: [
+                    ...setWindowProperty(state, action.id, 'position', [action.x, action.y]),
+                ]
             }
         case NOTEPAD_SET_WINDOW_SIZE:
             return {
                 ...state,
-                windowSize: [action.width, action.height]
-            }
-        case NOTEPAD_SET_WINDOW_OPEN:
-            return {
-                ...state,
-                open: action.value
+                windows: [
+                    ...setWindowProperty(state, action.id, 'size', [action.width, action.height]),
+                ]
             }
         case NOTEPAD_SET_WINDOW_STATE:
             return {
                 ...state,
-                open: action.value
+                windows: [
+                    ...setWindowProperty(state, action.id, 'state', action.value),
+                ]
             }
         default:
             return state;

@@ -1,4 +1,5 @@
-import React from 'react';
+import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 const Root = styled.div`
@@ -54,7 +55,16 @@ const GettingStartedButton = styled.button`
 `;
 
 
+
 function Index() {
+    const router = useRouter();
+    const [roomCode, setRoomCode] = useState('');
+
+    const enterRoom = (e) => {
+        e.preventDefault();
+        router.push(`/code/${roomCode}`)
+    }
+
     return (
         <Root>
             <Center>
@@ -64,7 +74,12 @@ function Index() {
                 <SubTitle>
                     A web client for Computer Craft
                 </SubTitle>
-                <RoomCodeInput placeholder="Enter room code..." />
+                <form action="/" method="GET" onSubmit={enterRoom}>
+                    <RoomCodeInput 
+                        placeholder="Enter room code..." 
+                        onChange={(e) => setRoomCode(e.target.value)} 
+                    />
+                </form>
                 <GettingStarted>
                     <div>Need help?</div>
                     <GettingStartedButton>Get Started</GettingStartedButton>

@@ -1,20 +1,21 @@
-import React from 'react';
-import { io } from 'socket.io-client';
-import Toolbar from '../../../components/Toolbar';
+import React, {useEffect, useState} from 'react';
+import RoomMain from '../../../components/room/RoomMain';
 
 type RoomCodeIndexProps = {
     roomCode: string;
 }
 
-// const socket = io('http://localhost:8000');
-
 function RoomCodeIndex({ roomCode }: RoomCodeIndexProps) {
-    console.log(roomCode);
-    return (
+    let [ws, setWs] = useState(null);
+    useEffect(() => {
+        const connection = new WebSocket('ws://localhost:8000');
+        setWs(connection);
+    }, []);
+    return ws ? (
         <div>
-            <Toolbar />
+            <RoomMain roomCode={roomCode} ws={ws} />
         </div>
-    )
+    ) : <div></div>
 }
 
 RoomCodeIndex.getInitialProps = async (ctx) => {
