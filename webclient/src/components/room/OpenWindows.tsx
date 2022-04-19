@@ -3,6 +3,7 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 
 import styled from 'styled-components';
+import Notepad from './windows/Notepad';
 
 type OpenWindowProps = {
   notepad: any;
@@ -15,11 +16,13 @@ class OpenWindow extends React.Component<OpenWindowProps> {
 
   render() {
     const { notepad } = this.props;
-    
+    console.log(notepad)
     return (
-      <div>
-
-      </div>
+      <React.Fragment>
+        {notepad.windows.map((notepadWindow) => (
+          <Notepad notepad={notepadWindow} />
+        ))}
+      </React.Fragment>
     )
   }
 }

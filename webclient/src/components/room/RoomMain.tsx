@@ -1,5 +1,6 @@
 import React from 'react';
 import DesktopShortcuts from './DesktopShortcuts';
+import OpenWindows from './OpenWindows';
 import Toolbar from './Toolbar';
 
 type RoomMainProps = {
@@ -55,6 +56,7 @@ class RoomMain extends React.Component<RoomMainProps, RoomMainState> {
     return (
       <div>
         <DesktopShortcuts />
+        <OpenWindows />
         <Toolbar/>
       </div>
     )

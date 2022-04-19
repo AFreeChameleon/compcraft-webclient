@@ -21,4 +21,9 @@ export type NotepadWindow = {
       number
   ],
   state: 'windowed' | 'minimised' | 'maximised',
+  file: {
+    name: string;
+    path: string;
+    content: string;
+  }
 }

@@ -8,7 +8,7 @@ type RoomCodeIndexProps = {
 function RoomCodeIndex({ roomCode }: RoomCodeIndexProps) {
     let [ws, setWs] = useState(null);
     useEffect(() => {
-        const connection = new WebSocket('ws://localhost:8000');
+        const connection = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKET_HOST);
         setWs(connection);
     }, []);
     return ws ? (

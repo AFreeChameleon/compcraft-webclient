@@ -31,6 +31,10 @@ export const addConnection = (roomCode: string, type: string, socket: any) => {
     return roomList[roomCode].connections;
 }
 
+export const getRoomData = (roomCode: string) => {
+    return roomList[roomCode].data;
+}
+
 export const getRoomList = () => {
     return roomList;
 }

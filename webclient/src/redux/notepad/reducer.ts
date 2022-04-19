@@ -17,11 +17,13 @@ const setWindowProperty = (state: any, id: string, key: string, value: any) => {
     const idx = state.windows.findIndex((w) => w.id === id);
     windows.splice(
         idx, 
+        1,
         {
             ...state.windows[idx],
             [key]: value
         }
     );
+    console.log(windows, idx)
     return windows;
 }
 
@@ -30,6 +32,7 @@ const setWindowFileProperty = (state: any, id: string, key: string, value: any) 
     const idx = state.windows.findIndex((w) => w.id === id);
     windows.splice(
         idx, 
+        1,
         {
             ...state.windows[idx],
             file: {

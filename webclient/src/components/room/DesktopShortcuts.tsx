@@ -7,6 +7,13 @@ import styled from 'styled-components';
 import {
   createWindow as createNotepadWindow
 } from '../../redux/notepad/actions';
+import OpenWindows from './OpenWindows';
+
+const Root = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+`;
 
 const ShortcutContainer = styled.div`
   display: flex;
@@ -42,6 +49,8 @@ type DesktopShortcutsProps = {
 class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
   constructor(props) {
     super(props);
+
+    this.handleNotepadClick = this.handleNotepadClick.bind(this);
   }
 
   handleNotepadClick(e) {
@@ -49,7 +58,6 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
       notepad, 
       dispatchCreateNotepadWindow 
     } = this.props;
-
     // Check for double click
     if (e.detail === 2) {
       dispatchCreateNotepadWindow({
@@ -63,6 +71,11 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
             0
         ],
         state: 'windowed',
+        file: {
+          name: '',
+          path: '',
+          content: ''
+        }
       });
     }
   }
@@ -72,16 +85,16 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
       notepad, 
       dispatchCreateNotepadWindow 
     } = this.props;
-
+    console.log(notepad)
     return (
-      <div>
+      <Root>
         <ShortcutContainer>
           <Shortcut onClick={this.handleNotepadClick}>
             <ShortcutImg src="/img/notepad.png"/>
             <ShortcutText>Notepad</ShortcutText>
           </Shortcut>
         </ShortcutContainer>
-      </div>
+      </Root>
     )
   }
 }
