@@ -2,114 +2,30 @@ import React from 'react';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import Draggable from 'react-draggable';
+import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 
 import { 
   deleteWindow,
-  setWindowPosition
+  setWindowPosition,
+  setZIndex,
+  setWindowState,
+  setWindowSize
 } from '../../../redux/notepad/actions';
 
-const Root = styled.div`
-  position: absolute;
-  user-select: none;
-  border: 1px solid #00AF00;
-`;
-
-const WindowHeader = styled.div`
-  width: 100%;
-  height: 30px;
-  background-color: #00AF00;
-  box-sizing: border-box;
-  display: flex;
-  justify-content: space-between;
-`;
-
-const WindowHeaderText = styled.div`
-  display: flex;
-  flex-grow: 1;
-  column-gap: 15px;
-  align-items: center;
-  height: 100%;
-  color: #ffffff;
-  padding-left: 15px;
-`;
-
-const WindowOptions = styled.div`
-  display: flex;
-`;
-
-const WindowButton = styled.div`
-  height: 100%;
-  width: 40px;
-  display: grid;
-  place-items: center;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 30%;
-  user-select: contain;
-
-  &.minimise {
-    background-image: url('/img/minimise.png');
-  }
-  &.maximise {
-    background-image: url('/img/maximise.png');
-  }
-  &.exit {
-    background-image: url('/img/exit.png');
-  }
-
-  &:hover {
-    background-color: #007A2A;
-  }
-`;
-
-const WindowBody = styled.div`
-  width: 100%;
-  height: calc(100% - 30px);
-`;
-
-
-const Options = styled.div`
-  width: 100%;
-  background-color: #ffffff;
-  border-bottom: 2px solid #e5e5e5;
-  padding: 0 10px;
-  box-sizing: border-box;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-`;
-
-const Option = styled.div`
-
-
-`;
-
-const OptionText = styled.div`
-  padding: 0 5px;
-  line-height: 20px;
-  &:hover {
-    background-color: #00AF00;
-    color: #ffffff;
-  }
-`;
-
-const OptionMenu = styled.div`
-  position: absolute;
-  left: 8px;
-  background-color: #fff;
-  border: 1px solid #e5e5e5;
-  color: #000000;
-  width: 200px;
-`;
-
-const OptionMenuItem = styled.div`
-  line-height: 20px;
-  padding: 0 5px;
-  &:hover {
-    background-color: #00AF0021;
-  }
-`;
+import {
+  Root,
+  WindowHeader,
+  WindowHeaderText,
+  WindowButton,
+  WindowOptions,
+  WindowBody,
+  Options,
+  Option,
+  OptionText,
+  OptionMenu,
+  OptionMenuItem
+} from './WindowTemplates';
 
 const NotepadTextarea = styled.textarea`
   width: 100%;
@@ -125,8 +41,14 @@ const NotepadTextarea = styled.textarea`
 
 type NotepadProps = {
   notepad: any;
+
+  // Redux
+  windows: any;
   dispatchDeleteWindow: (id: number) => void;
+  dispatchSetZIndex: (id: number, zIndex: number) => void;
   dispatchSetWindowPosition: (id: number, x: number, y: number) => void;
+  dispatchSetWindowSize: (id: number, width: number, height: number) => void;
+  dispatchSetWindowState: (id: number, value: string) => void;
 }
 
 type NotepadState = {
@@ -144,8 +66,11 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
     this.onDragNotepad = this.onDragNotepad.bind(this);
     this.onStopNotepad = this.onStopNotepad.bind(this);
     this.onStartNotepad = this.onStartNotepad.bind(this);
+    this.onMaximiseClick = this.onMaximiseClick.bind(this);
     this.onExitClick = this.onExitClick.bind(this);
     this.onOptionMenuClick = this.onOptionMenuClick.bind(this);
+    this.getWindowSize = this.getWindowSize.bind(this);
+    this.resizeWindow = this.resizeWindow.bind(this);
   }
 
   onDragNotepad(e, data) {
@@ -153,14 +78,38 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
   }
 
   onStartNotepad(e, data) {
-    const { notepad, dispatchDeleteWindow } = this.props;
-    console.log(notepad)
+    const { 
+      notepad, 
+      windows, 
+      dispatchDeleteWindow, 
+      dispatchSetZIndex,
+      dispatchSetWindowState,
+      dispatchSetWindowPosition
+    } = this.props;
+    console.log(notepad, e, data)
+    
+    // Set zindex
+    if (notepad.zIndex !== Math.max(...windows.map((w) => w.zIndex))) {
+      dispatchSetZIndex(notepad.id, Math.max(...windows.map((w) => w.zIndex)) + 1);
+    }
+
+    if (notepad.state !== 'windowed') {
+      dispatchSetWindowState(notepad.id, 'windowed');
+      dispatchSetWindowPosition(notepad.id, e.clientX - (notepad.size[0] / 2), e.clientY - 15);
+    }
   }
 
   onStopNotepad(e, data) {
     const { notepad, dispatchSetWindowPosition } = this.props;
     console.log(e, data);
     dispatchSetWindowPosition(notepad.id, data.x, data.y);
+  }
+
+  onMaximiseClick(e) {
+    const { notepad, dispatchSetWindowState, dispatchSetWindowPosition } = this.props;
+
+    dispatchSetWindowPosition(notepad.id, 0, 0);
+    dispatchSetWindowState(notepad.id, 'maximised');
   }
 
   onExitClick(e) {
@@ -183,6 +132,34 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
     });
   }
 
+  getWindowSize() {
+    const { notepad, dispatchSetWindowPosition } = this.props;
+
+    switch (notepad.state) {
+      case 'windowed':
+        return {
+          width: notepad.size[0],
+          height: notepad.size[1],
+        }
+      case 'maximised':
+        return {
+          width: '100%',
+          height: '100%'
+        }
+      default:
+        return {
+          width: 0,
+          height: 0
+        };
+    }
+  }
+
+  resizeWindow(e, direction, ref, d) {
+    const { notepad, dispatchSetWindowSize } = this.props;
+
+    dispatchSetWindowSize(notepad.id, notepad.size[0] + d.width, notepad.size[1] + d.height);
+  }
+
   render() {
     const { notepad } = this.props;
     const { menuOpen } = this.state;
@@ -201,55 +178,70 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
         onStart={this.onStartNotepad}
         onStop={this.onStopNotepad}
       >
-          <Root style={{
-            width: notepad.size[0],
-            height: notepad.size[1],
-            zIndex: notepad.zIndex
-          }}>
-            <WindowHeader>
-              <WindowHeaderText id={`notepad-header-${notepad.id}`}>
-                {notepad.file.name || 'Untitled'} {notepad.file.path ? `- [${notepad.file.path}]` : ''}
-              </WindowHeaderText>
-              <WindowOptions>
-                <WindowButton className="minimise"></WindowButton>
-                <WindowButton className="maximise"></WindowButton>
-                <WindowButton className="exit" onClick={this.onExitClick}></WindowButton>
-              </WindowOptions>
-            </WindowHeader>
-            <WindowBody>
-              <Options>
-                <Option>
-                  <OptionText 
-                    id="file-menu-button"
-                    onClick={(e) => this.onOptionMenuClick('file')}
-                  >
-                    File
-                  </OptionText>
-                  <OptionMenu id="file-menu" style={{
-                    display: menuOpen === 'file' ? 'block' : 'none'
-                  }}>
-                    <OptionMenuItem>New</OptionMenuItem>
-                    <OptionMenuItem>Save</OptionMenuItem>
-                    <OptionMenuItem>Save As</OptionMenuItem>
-                    <OptionMenuItem>Open</OptionMenuItem>
-                  </OptionMenu>
-                </Option>
-              </Options>
-              <NotepadTextarea resize="none"></NotepadTextarea>
-            </WindowBody>
-          </Root>
+        <Resizable 
+          size={{
+            ...this.getWindowSize()
+          }}
+          enable={notepad.state === 'windowed' ? ({
+            right: true,
+            bottom: true,
+            bottomRight: true
+          }) : ({})}
+          style={{
+            zIndex: notepad.zIndex,
+            border: '1px solid #00AF00',
+            position: 'absolute',
+            userSelect: 'none',
+          }}
+          onResizeStop={this.resizeWindow}
+        >
+          <WindowHeader>
+            <WindowHeaderText id={`notepad-header-${notepad.id}`}>
+              {notepad.file.name || 'Untitled'} {notepad.file.path ? `- [${notepad.file.path}]` : ''}
+            </WindowHeaderText>
+            <WindowOptions>
+              <WindowButton className="minimise"></WindowButton>
+              <WindowButton className="maximise" onClick={this.onMaximiseClick}></WindowButton>
+              <WindowButton className="exit" onClick={this.onExitClick}></WindowButton>
+            </WindowOptions>
+          </WindowHeader>
+          <WindowBody>
+            <Options>
+              <Option>
+                <OptionText 
+                  id="file-menu-button"
+                  onClick={(e) => this.onOptionMenuClick('file')}
+                >
+                  File
+                </OptionText>
+                <OptionMenu id="file-menu" style={{
+                  display: menuOpen === 'file' ? 'block' : 'none'
+                }}>
+                  <OptionMenuItem>New</OptionMenuItem>
+                  <OptionMenuItem>Save</OptionMenuItem>
+                  <OptionMenuItem>Save As</OptionMenuItem>
+                  <OptionMenuItem>Open</OptionMenuItem>
+                </OptionMenu>
+              </Option>
+            </Options>
+            <NotepadTextarea resize="none"></NotepadTextarea>
+          </WindowBody>
+        </Resizable>
       </Draggable>
     )
   }
 }
 
 const mapStateToProps = (state) => ({
-
+  windows: state.notepad.windows
 });
 
 const mapDispatchToProps = (dispatch) => ({
   dispatchDeleteWindow: (id: number) => dispatch(deleteWindow(id)),
-  dispatchSetWindowPosition: (id: number, x: number, y: number) => dispatch(setWindowPosition(id, x, y))
+  dispatchSetWindowPosition: (id: number, x: number, y: number) => dispatch(setWindowPosition(id, x, y)),
+  dispatchSetWindowSize: (id: number, width: number, height: number) => dispatch(setWindowSize(id, width, height)),
+  dispatchSetZIndex: (id: number, zIndex: number) => dispatch(setZIndex(id, zIndex)),
+  dispatchSetWindowState: (id: number, value: string) => dispatch(setWindowState(id, value))
 });
 
 export default compose(

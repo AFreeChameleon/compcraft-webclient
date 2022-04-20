@@ -4,9 +4,11 @@ import { connect } from 'react-redux';
 
 import styled from 'styled-components';
 import Notepad from './windows/Notepad';
+import Files from './windows/Files';
 
 type OpenWindowProps = {
   notepad: any;
+  files: any;
 }
 
 class OpenWindow extends React.Component<OpenWindowProps> {
@@ -15,12 +17,15 @@ class OpenWindow extends React.Component<OpenWindowProps> {
   }
 
   render() {
-    const { notepad } = this.props;
+    const { notepad, files } = this.props;
     console.log(notepad)
     return (
       <React.Fragment>
         {notepad.windows.map((notepadWindow) => (
           <Notepad notepad={notepadWindow} />
+        ))}
+        {files.windows.map((filesWindow) => (
+          <Files files={filesWindow} />
         ))}
       </React.Fragment>
     )
@@ -28,7 +33,8 @@ class OpenWindow extends React.Component<OpenWindowProps> {
 }
 
 const mapStateToProps = (state) => ({
-  notepad: state.notepad
+  notepad: state.notepad,
+  files: state.files
 });
 
 const mapDispatchToProps = (dispatch) => ({

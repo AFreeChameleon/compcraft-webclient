@@ -7,18 +7,26 @@ import styled from 'styled-components';
 import {
   createWindow as createNotepadWindow
 } from '../../redux/notepad/actions';
+import {
+  createWindow as createFilesWindow
+} from '../../redux/files/actions';
 import OpenWindows from './OpenWindows';
 
 const Root = styled.div`
   position: absolute;
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
+  row-gap: 30px;
+  padding: 10px
 `;
 
 const ShortcutContainer = styled.div`
   display: flex;
   flex-direction: column;
   row-gap: 30px;
+  cursor: default;
 `;
 
 const Shortcut = styled.div`
@@ -26,6 +34,7 @@ const Shortcut = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 5px 0;
   &:hover {
     background-color: blue;
   }
@@ -38,12 +47,15 @@ const ShortcutImg = styled.img`
 const ShortcutText = styled.div`
   text-align: center;
   margin-top: 10px;
+  font-size: 14px;
 `;
 
 type DesktopShortcutsProps = {
   notepad: any;
+  files: any;
 
   dispatchCreateNotepadWindow: (windowProps) => void;
+  dispatchCreateFilesWindow: (windowProps) => void;
 }
 
 class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
@@ -51,6 +63,20 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
     super(props);
 
     this.handleNotepadClick = this.handleNotepadClick.bind(this);
+    this.handleFilesClick = this.handleFilesClick.bind(this);
+    this.getHighestZIndex = this.getHighestZIndex.bind(this);
+  }
+
+  getHighestZIndex() {
+    const { 
+      notepad, 
+      files 
+    } = this.props;
+
+    return Math.max(
+      ...notepad.windows.map((w) => w.zIndex), 
+      ...files.windows.map((w) => w.zIndex)
+    );
   }
 
   handleNotepadClick(e) {
@@ -61,7 +87,36 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
     // Check for double click
     if (e.detail === 2) {
       dispatchCreateNotepadWindow({
-        zIndex: 0,
+        zIndex: notepad.windows.length ? 
+          this.getHighestZIndex() + 1 : 1,
+        size: [
+            800,
+            600
+        ],
+        position: [
+            0,
+            0
+        ],
+        state: 'windowed',
+        file: {
+          name: '',
+          path: '',
+          content: ''
+        }
+      });
+    }
+  }
+
+  handleFilesClick(e) {
+    const {
+      files,
+      dispatchCreateFilesWindow
+    } = this.props;
+
+    if (e.detail === 2) {
+      dispatchCreateFilesWindow({
+        zIndex: files.windows.length ? 
+          this.getHighestZIndex() + 1 : 1,
         size: [
             800,
             600
@@ -82,8 +137,7 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
 
   render() {
     const { 
-      notepad, 
-      dispatchCreateNotepadWindow 
+      notepad,  
     } = this.props;
     console.log(notepad)
     return (
@@ -94,17 +148,25 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
             <ShortcutText>Notepad</ShortcutText>
           </Shortcut>
         </ShortcutContainer>
+        <ShortcutContainer>
+          <Shortcut onClick={this.handleFilesClick}>
+            <ShortcutImg src="/img/folder.png"/>
+            <ShortcutText>Files</ShortcutText>
+          </Shortcut>
+        </ShortcutContainer>
       </Root>
     )
   }
 }
 
 const mapStateToProps = (state) => ({
-  notepad: state.notepad
+  notepad: state.notepad,
+  files: state.files
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  dispatchCreateNotepadWindow: (windowProps) => dispatch(createNotepadWindow(windowProps))
+  dispatchCreateNotepadWindow: (windowProps) => dispatch(createNotepadWindow(windowProps)),
+  dispatchCreateFilesWindow: (windowProps) => dispatch(createFilesWindow(windowProps))
 });
 
 export default compose(

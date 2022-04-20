@@ -12,6 +12,8 @@ const Root = styled.div`
     align-items: center;
     padding: 0 10px;
     box-sizing: border-box;
+    z-index: 1000000;
+    background-color: #ffffff;
 `;
 
 const StartButton = styled.button`
