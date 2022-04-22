@@ -38,3 +38,13 @@ export const getRoomData = (roomCode: string) => {
 export const getRoomList = () => {
     return roomList;
 }
+
+export const getServerSocket = (roomCode: string) => {
+    const serverSocket = roomList[roomCode].connections.find((c: any) => c.type === 'server');
+    return serverSocket;
+}
+
+export const getClientSocket = (roomCode: string) => {
+    const serverSocket = roomList[roomCode].connections.find((c: any) => c.type === 'client');
+    return serverSocket;
+}

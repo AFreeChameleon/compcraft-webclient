@@ -1,6 +1,8 @@
 import { 
     addRoom,
-    addConnection
+    addConnection,
+    getServerSocket,
+    getClientSocket
 } from "./room";
 
 export const createRoom = (req: any, socket: any) => {
@@ -23,6 +25,28 @@ export const joinRoom = (req: any, socket: any) => {
         action: 'join-room',
         data: {
             roomCode: roomCode
+        }
+    }));
+}
+
+export const getFilesData = (req: any, socket: any) => {
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode);
+    serverSocket.send(JSON.stringify({
+        action: 'get-files-data'
+    }));
+}
+
+export const setFilesData = (req: any, socket: any) => {
+    const { structure, disks, id } = req.data;
+    const roomCode = req.roomCode;
+    const clientSocket = getClientSocket(roomCode);
+    clientSocket.send(JSON.stringify({
+        action: 'set-files-data',
+        data: {
+            structure: structure,
+            disks: disks,
+            id: id
         }
     }));
 }

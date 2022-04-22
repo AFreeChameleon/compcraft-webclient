@@ -57,7 +57,7 @@ export const setStructure = (id: number, value: File[]) => ({
     value: value
 });
 
-export const setDisks = (id: number, value: Disk[]) => ({
+export const setDisks = (id = null, value: Disk[]) => ({
     type: FILES_SET_DISKS,
     id: id,
     value: value

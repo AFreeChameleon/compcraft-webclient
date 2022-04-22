@@ -1,4 +1,4 @@
-import { createRoom, joinRoom } from "./controllers";
+import { createRoom, getFilesData, joinRoom, setFilesData } from "./controllers";
 import { 
     addRoom,
     addConnection
@@ -13,10 +13,12 @@ export const routeAction = (req: any, socket: any) => {
             case 'join-room':
                 joinRoom(req, socket);
                 break;
-            case 'get-data':
-                (() => {
-    
-                })();
+            case 'get-files-data':
+                getFilesData(req, socket);
+                break;
+            case 'set-files-data':
+                setFilesData(req, socket);
+                break;
             default:
                 break;
         }
