@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import RoomMain from '../../../components/room/RoomMain';
+import MinecraftWebSocket from '../../../lib/MinecraftWebSocket';
 
 type RoomCodeIndexProps = {
     roomCode: string;
@@ -9,7 +10,8 @@ function RoomCodeIndex({ roomCode }: RoomCodeIndexProps) {
     let [ws, setWs] = useState(null);
     useEffect(() => {
         const connection = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKET_HOST);
-        setWs(connection);
+        const websocket = new MinecraftWebSocket(connection, roomCode);
+        setWs(websocket);
     }, []);
     return ws ? (
         <div>

@@ -13,28 +13,15 @@ type GetFileData = {
     }
 }
 
-class Websocket {
-    wsConn;
+class MinecraftWebSocket {
+    socket;
     roomCode;  
     
     constructor(socket: WebSocket, roomCode: string) {
-        this.wsConn = socket;
+        this.socket = socket;
         this.roomCode = roomCode;
 
-        this.wsConn.addEventListener('message', this.routeAction);
-    }
-
-    routeAction(e) {
-        const req: GetFileData = JSON.parse(e.data);
-        
-        switch(req.action) {
-            case 'set-file-data':
-                this.setFilesData(req);
-                break;
-            default:
-                throw 'No action provided.';
-
-        }
+        this.socket.addEventListener('message', this.routeAction.bind(this));
     }
 
     private setFilesData(req) {
@@ -45,17 +32,34 @@ class Websocket {
         } = req.data;
         store.dispatch(setDisks(id, disks));
         store.dispatch(setStructure(id, structure));
+        console.log(store.getState());
     }
 
-    public getFilesData(id: number) {
-        this.wsConn.send(JSON.stringify({
+    public getFilesData(id: number, path: string) {
+        this.socket.send(JSON.stringify({
             action: 'get-files-data',
+            roomCode: this.roomCode,
             data: {
-                currentPath: '/',
+                currentPath: path,
                 id: id
             }
         }));
     }
+
+    routeAction(e) {
+        const req: GetFileData = JSON.parse(e.data);
+        
+        switch(req.action) {
+            case 'set-files-data':
+                console.log('SETFILESDATA')
+                this.setFilesData(req);
+                break;
+            default:
+                console.log('Action not found', req);
+                break;
+
+        }
+    }
 }
 
-export default Websocket;
+export default MinecraftWebSocket;

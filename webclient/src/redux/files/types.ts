@@ -21,8 +21,7 @@ export type Disk = {
 
 export type File = {
     name: string;
-    path: string;
-    content: string;
+    directory: boolean;
 }
 
 export type FilesWindow = {

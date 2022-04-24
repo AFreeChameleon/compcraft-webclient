@@ -26,6 +26,7 @@ import {
   OptionMenu,
   OptionMenuItem
 } from './WindowTemplates';
+import MinecraftWebSocket from '../../../lib/MinecraftWebSocket';
 
 const NotepadTextarea = styled.textarea`
   width: 100%;
@@ -41,6 +42,7 @@ const NotepadTextarea = styled.textarea`
 
 type NotepadProps = {
   notepad: any;
+  ws: MinecraftWebSocket;
 
   // Redux
   windows: any;

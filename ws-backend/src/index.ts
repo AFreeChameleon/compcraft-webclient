@@ -6,7 +6,6 @@ import { addRoom } from './lib/room';
 const wss: any = new WebS.Server({port:8000}, () => console.log('Websocket server listening on port 8000'))
 
 wss.on('connection', (socket: any) => {
-    console.log('Connected', socket)
     socket.on("message", (msg: string) => {
         const req = JSON.parse(msg);
         if (!req.action) {

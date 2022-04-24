@@ -20,6 +20,7 @@ export const routeAction = (req: any, socket: any) => {
                 setFilesData(req, socket);
                 break;
             default:
+                console.log(req)
                 break;
         }
     } catch (err) {

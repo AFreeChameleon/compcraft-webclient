@@ -126,11 +126,8 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
             0
         ],
         state: 'windowed',
-        file: {
-          name: '',
-          path: '',
-          content: ''
-        }
+        currentPath: '/',
+        structure: []
       });
     }
   }
