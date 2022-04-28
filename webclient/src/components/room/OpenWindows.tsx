@@ -20,7 +20,6 @@ class OpenWindow extends React.Component<OpenWindowProps> {
 
   render() {
     const { notepad, files, ws } = this.props;
-    console.log(notepad)
     return (
       <React.Fragment>
         {notepad.windows.map((notepadWindow, i) => (

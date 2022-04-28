@@ -73,6 +73,12 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
       files 
     } = this.props;
 
+    if (Math.max(
+      ...notepad.windows.map((w) => w.zIndex), 
+      ...files.windows.map((w) => w.zIndex)
+    ) === -Infinity) {
+      return 0;
+    }
     return Math.max(
       ...notepad.windows.map((w) => w.zIndex), 
       ...files.windows.map((w) => w.zIndex)
@@ -87,8 +93,7 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
     // Check for double click
     if (e.detail === 2) {
       dispatchCreateNotepadWindow({
-        zIndex: notepad.windows.length ? 
-          this.getHighestZIndex() + 1 : 1,
+        zIndex: this.getHighestZIndex() + 1,
         size: [
             800,
             600
@@ -115,8 +120,7 @@ class DesktopShortcuts extends React.Component<DesktopShortcutsProps> {
 
     if (e.detail === 2) {
       dispatchCreateFilesWindow({
-        zIndex: files.windows.length ? 
-          this.getHighestZIndex() + 1 : 1,
+        zIndex: this.getHighestZIndex() + 1,
         size: [
             800,
             600

@@ -27,6 +27,7 @@ import {
   OptionMenuItem
 } from './WindowTemplates';
 import MinecraftWebSocket from '../../../lib/MinecraftWebSocket';
+import withZIndex from './withZIndex';
 
 const NotepadTextarea = styled.textarea`
   width: 100%;
@@ -43,6 +44,8 @@ const NotepadTextarea = styled.textarea`
 type NotepadProps = {
   notepad: any;
   ws: MinecraftWebSocket;
+  moveToTop: (windowType: string, windowId: number) => void;
+  getHighestZIndex?: () => number;
 
   // Redux
   windows: any;
@@ -68,6 +71,7 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
     this.onDragNotepad = this.onDragNotepad.bind(this);
     this.onStopNotepad = this.onStopNotepad.bind(this);
     this.onStartNotepad = this.onStartNotepad.bind(this);
+    this.onMinimiseClick = this.onMinimiseClick.bind(this);
     this.onMaximiseClick = this.onMaximiseClick.bind(this);
     this.onExitClick = this.onExitClick.bind(this);
     this.onOptionMenuClick = this.onOptionMenuClick.bind(this);
@@ -83,16 +87,15 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
     const { 
       notepad, 
       windows, 
-      dispatchDeleteWindow, 
-      dispatchSetZIndex,
+      moveToTop,
+      getHighestZIndex,
       dispatchSetWindowState,
       dispatchSetWindowPosition
     } = this.props;
-    console.log(notepad, e, data)
     
     // Set zindex
-    if (notepad.zIndex !== Math.max(...windows.map((w) => w.zIndex))) {
-      dispatchSetZIndex(notepad.id, Math.max(...windows.map((w) => w.zIndex)) + 1);
+    if (notepad.zIndex !== getHighestZIndex()) {
+      moveToTop('notepad', notepad.id);
     }
 
     if (notepad.state !== 'windowed') {
@@ -103,15 +106,24 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
 
   onStopNotepad(e, data) {
     const { notepad, dispatchSetWindowPosition } = this.props;
-    console.log(e, data);
     dispatchSetWindowPosition(notepad.id, data.x, data.y);
   }
 
-  onMaximiseClick(e) {
-    const { notepad, dispatchSetWindowState, dispatchSetWindowPosition } = this.props;
+  onMinimiseClick(e) {
+    const { notepad, dispatchSetWindowState } = this.props;
+    dispatchSetWindowState(notepad.id, 'minimised');
+  }
 
+  onMaximiseClick(e) {
+    const { notepad, moveToTop, dispatchSetWindowState, dispatchSetWindowPosition } = this.props;
+
+    moveToTop('notepad', notepad.id);
     dispatchSetWindowPosition(notepad.id, 0, 0);
-    dispatchSetWindowState(notepad.id, 'maximised');
+    if (notepad.state === 'maximised') {
+      dispatchSetWindowState(notepad.id, 'windowed')
+    } else {
+      dispatchSetWindowState(notepad.id, 'maximised');
+    }
   }
 
   onExitClick(e) {
@@ -166,7 +178,7 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
     const { notepad } = this.props;
     const { menuOpen } = this.state;
     // console.log(notepad)
-    return (
+    return notepad.state !== 'minimised' ? (
       <Draggable
         handle={`#notepad-header-${notepad.id}`}
         position={{
@@ -202,9 +214,9 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
               {notepad.file.name || 'Untitled'} {notepad.file.path ? `- [${notepad.file.path}]` : ''}
             </WindowHeaderText>
             <WindowOptions>
-              <WindowButton className="minimise"></WindowButton>
-              <WindowButton className="maximise" onClick={this.onMaximiseClick}></WindowButton>
-              <WindowButton className="exit" onClick={this.onExitClick}></WindowButton>
+              <WindowButton className="minimise" onMouseUp={this.onMinimiseClick}></WindowButton>
+              <WindowButton className="maximise" onMouseUp={this.onMaximiseClick}></WindowButton>
+              <WindowButton className="exit" onMouseUp={this.onExitClick}></WindowButton>
             </WindowOptions>
           </WindowHeader>
           <WindowBody>
@@ -230,7 +242,7 @@ class Notepad extends React.Component<NotepadProps, NotepadState> {
           </WindowBody>
         </Resizable>
       </Draggable>
-    )
+    ) : null;
   }
 }
 
@@ -248,4 +260,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps)
-)(Notepad);
+)(withZIndex(Notepad));
