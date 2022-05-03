@@ -13,7 +13,7 @@ import {
   setWindowState,
   setWindowSize,
   setCurrentPath
-} from '../../../redux/files/actions';
+} from '../../redux/files/actions';
 
 import {
     WindowHeader,
@@ -27,8 +27,8 @@ import {
     OptionMenu,
     OptionMenuItem
 } from './WindowTemplates';
-import MinecraftWebSocket from '../../../lib/MinecraftWebSocket';
-import { Disk as DiskType, File, FilesWindow } from '../../../redux/files/types';
+import MinecraftWebSocket from '../../lib/MinecraftWebSocket';
+import { Disk as DiskType, File, FilesWindow } from '../../redux/files/types';
 import withZIndex from './withZIndex';
 
 const FilesMain = styled.div`

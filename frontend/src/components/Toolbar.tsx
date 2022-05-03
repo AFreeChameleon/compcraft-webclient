@@ -6,12 +6,12 @@ import styled from 'styled-components';
 import {
     createWindow as createNotepadWindow,
     deleteWindow as deleteNotepadWindow
-} from '../../redux/notepad/actions';
+} from '../redux/notepad/actions';
 
 import {
     createWindow as createFilesWindow,
     deleteWindow as deleteFilesWindow
-} from '../../redux/files/actions';
+} from '../redux/files/actions';
 
 import withZIndex from './windows/withZIndex';
 import WindowTooltips from './WindowTooltips';

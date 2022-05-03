@@ -25,3 +25,47 @@ local function getDiskData()
         return paths
     end
 end
+
+function routeAction(req)
+    if req.action == 'get-files-data' then
+        local path = req.data.currentPath
+        local dirItems = fs.list(path)
+        local files = {}
+        print(textutils.serialize(dirItems))
+        for _, dirItem in pairs(dirItems) do
+            table.insert(
+                files,
+                {
+                    ["name"] = dirItem,
+                    ["directory"] = fs.isDir(path .. dirItem)
+                }
+            )
+        end
+        ws.send(json.encode({
+            ["action"] = "set-files-data",
+            ["roomCode"] = req.roomCode,
+            ["data"] = {
+                ["structure"] = files,
+                ["disks"] = getDiskData(),
+                ["id"] = req.data.id
+            }
+        }))
+    end
+end
+
+if ws then
+    ws.send(json.encode({
+        ["action"] = "create-room",
+        ["data"] = {
+            ["files"] = {
+                ["disks"] = getDiskData()
+            }
+        }
+    }))
+    while true do
+        local rawMsg = ws.recieve()
+        local req = json.decode(rawMsg)
+        print(req, rawMsg)
+        routeAction(req)
+    end
+end

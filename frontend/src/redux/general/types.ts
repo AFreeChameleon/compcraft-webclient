@@ -1,0 +1,1 @@
+export const GENERAL_SET_TIME = 'GENERAL_SET_TIME';
