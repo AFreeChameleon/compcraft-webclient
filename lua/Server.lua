@@ -1,3 +1,5 @@
+os.loadAPI("json")
+
 local ws, err = http.websocket(
 
 );
@@ -26,8 +28,12 @@ local function getDiskData()
     end
 end
 
-function routeAction(req)
-    if req.action == 'get-files-data' then
+local function routeAction(req)
+    if req.action == 'ping' then
+        ws.send(json.encode({
+            ["action"] = 'ping'
+        }))
+    elseif req.action == 'get-files-data' then
         local path = req.data.currentPath
         local dirItems = fs.list(path)
         local files = {}
@@ -50,6 +56,17 @@ function routeAction(req)
                 ["id"] = req.data.id
             }
         }))
+    elseif req.action == 'get-time' then
+        local time = textutils.formatTime(os.time())
+        local date = os.date("%d/%m/%Y")
+        ws.send(json.encode({
+            ["action"] = "set-time",
+            ["roomCode"] = req.roomCode,
+            ["data"] = {
+                ["time"] = time,
+                ["date"] = date
+            }
+        }))
     end
 end
 
@@ -63,7 +80,7 @@ if ws then
         }
     }))
     while true do
-        local rawMsg = ws.recieve()
+        local rawMsg = ws.receive()
         local req = json.decode(rawMsg)
         print(req, rawMsg)
         routeAction(req)

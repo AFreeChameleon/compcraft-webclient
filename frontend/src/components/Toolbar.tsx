@@ -76,6 +76,26 @@ const WindowTooltip = styled.div`
     width: 250px;
 `;
 
+const FlexGrow = styled.div`
+    flex-grow: 1;
+`;
+
+const TimeContainer = styled.div`
+    width: 100px;
+`;
+
+const TimeWidget = styled.div`
+    text-align: center;
+`;
+
+const TimeWidgetHour = styled.div`
+    font-size: 14px;
+`;
+    
+const TimeWidgetDate = styled.div`
+    font-size: 14px;
+`;
+
 type ToolbarProps = {
     window: {
         notepad: any;
@@ -83,6 +103,7 @@ type ToolbarProps = {
     };
     getHighestZIndex: () => number;
 
+    general: any;
     dispatchDeleteNotepadWindow: (id: number) => void;
     dispatchDeleteFilesWindow: (id: number) => void;
     dispatchCreateNotepadWindow: (windowProps) => void;
@@ -152,6 +173,7 @@ class Toolbar extends React.Component<ToolbarProps> {
     render() {
         const {
             window,
+            general,
             dispatchDeleteNotepadWindow,
             dispatchDeleteFilesWindow
         } = this.props;
@@ -197,6 +219,17 @@ class Toolbar extends React.Component<ToolbarProps> {
                         ></ApplicationIcon>
                     </div>
                 </ApplicationTray>
+                <FlexGrow />
+                <TimeContainer>
+                    <TimeWidget>
+                        <TimeWidgetHour>
+                            {general.time}
+                        </TimeWidgetHour>
+                        <TimeWidgetDate>
+                            {general.date}
+                        </TimeWidgetDate>
+                    </TimeWidget>
+                </TimeContainer>
             </Root>
         )
     }
@@ -205,8 +238,9 @@ class Toolbar extends React.Component<ToolbarProps> {
 const mapStateToProps = (state) => ({
     window: {
         files: state.files,
-        notepad: state.notepad
-    }
+        notepad: state.notepad,
+    },
+    general: state.general
 });
 
 const mapDispatchToProps = (dispatch) => ({

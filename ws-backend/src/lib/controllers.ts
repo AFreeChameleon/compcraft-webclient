@@ -3,11 +3,36 @@ import {
     addConnection,
     getServerSocket,
     getClientSocket,
-    getRoomList
+    getRoomList,
+    addHeartbeat,
+    addClientHeartbeat
 } from "./room";
+
+export const setTime = (req: any, socket: any) => {
+    const { time } = req.data;
+    const roomCode = req.roomCode;
+    const clientSocket = getClientSocket(roomCode);
+    if (!clientSocket) {
+        console.log('No client');
+        return;
+    }
+    clientSocket.socket.send(JSON.stringify({
+        status: 'success',
+        action: 'set-time',
+        roomCode: roomCode,
+        data: {
+            time: time
+        }
+    }));
+}
+
+export const ping = (req: any, socket: any) => {
+    socket.is_alive = true;
+}
 
 export const createRoom = (req: any, socket: any) => {
     const roomCode = addRoom(req.data);
+    socket.is_alive = true;
     addConnection(roomCode, 'server', socket);
     socket.send(JSON.stringify({
         status: 'success',
@@ -16,11 +41,13 @@ export const createRoom = (req: any, socket: any) => {
             roomCode: roomCode
         }
     }));
+    // addHeartbeat(roomCode, socket);
 }
 
 export const joinRoom = (req: any, socket: any) => {
     console.log(getRoomList());
     const roomCode = req.roomCode;
+    socket.is_alive = true;
     addConnection(roomCode, 'client', socket);
     socket.send(JSON.stringify({
         status: 'success',
@@ -29,6 +56,7 @@ export const joinRoom = (req: any, socket: any) => {
             roomCode: roomCode
         }
     }));
+    // addClientHeartbeat(roomCode, socket);
 }
 
 export const getFilesData = (req: any, socket: any) => {

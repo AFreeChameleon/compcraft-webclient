@@ -1,8 +1,11 @@
-import { createRoom, getFilesData, joinRoom, setFilesData } from "./controllers";
 import { 
-    addRoom,
-    addConnection
-} from "./room";
+    createRoom, 
+    getFilesData, 
+    joinRoom, 
+    setFilesData, 
+    setTime, 
+    ping 
+} from "./controllers";
 
 export const routeAction = (req: any, socket: any) => {
     try {
@@ -18,6 +21,12 @@ export const routeAction = (req: any, socket: any) => {
                 break;
             case 'set-files-data':
                 setFilesData(req, socket);
+                break;
+            case 'set-time':
+                setTime(req, socket);
+                break;
+            case 'ping':
+                ping(req, socket);
                 break;
             default:
                 console.log(req)

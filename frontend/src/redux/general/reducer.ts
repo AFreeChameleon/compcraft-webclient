@@ -1,9 +1,11 @@
 import {
-    GENERAL_SET_TIME
+    GENERAL_SET_TIME,
+    GENERAL_SET_DATE,
 } from './types';
 
 const defaultState = {
-    time: ''
+    time: '',
+    date: ''
 }
 
 const reducer = (state = defaultState, action) => {
@@ -13,6 +15,13 @@ const reducer = (state = defaultState, action) => {
                 ...state,
                 time: action.value
             }
+        case GENERAL_SET_DATE:
+            return {
+                ...state,
+                date: action.value
+            }
+        default:
+            return state;
     }
 }
 

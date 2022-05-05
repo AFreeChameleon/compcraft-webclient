@@ -3,7 +3,7 @@ import { routeAction } from './lib/actions';
 
 import { addRoom } from './lib/room';
 
-const wss: any = new WebS.Server({port:8000}, () => console.log('Websocket server listening on port 8000'))
+const wss: any = new WebS.Server({port:9000}, () => console.log('Websocket server listening on port 9000'))
 
 wss.on('connection', (socket: any) => {
     socket.on("message", (msg: string) => {
@@ -15,8 +15,8 @@ wss.on('connection', (socket: any) => {
     })
 });
 
-wss.broadcast = (msg: string) => {
-    wss.clients.forEach((client: any) => {
-        client.send(msg)
-    });
-};
+// wss.broadcast = (msg: string) => {
+//     wss.clients.forEach((client: any) => {
+//         client.send(msg)
+//     });
+// };

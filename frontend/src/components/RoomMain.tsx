@@ -55,7 +55,6 @@ class RoomMain extends React.Component<RoomMainProps, RoomMainState> {
   render() {
     const { ws } = this.props;
     const { connected } = this.state;
-    console.log(connected, ws);
     return (
       <div>
         <DesktopShortcuts />

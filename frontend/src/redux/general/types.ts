@@ -1,1 +1,2 @@
 export const GENERAL_SET_TIME = 'GENERAL_SET_TIME';
+export const GENERAL_SET_DATE = 'GENERAL_SET_DATE';

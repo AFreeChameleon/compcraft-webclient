@@ -4,13 +4,31 @@ import json
 import string
 import random
 import websockets
+from threading import Thread
+from signal import SIGINT, SIGTERM
 
 class WebsocketServer:
     rooms = {}
 
     def __init__(self):
-        print('Loading websocket server on port ws://localhost:8000')
-        self.server = websockets.serve(self.handler, 'localhost', 8000)
+        print('Loading websocket server on port ws://localhost:9000')
+        loop = asyncio.get_event_loop()
+        self.server = websockets.serve(self.handler, port=9000, subprotocols=None, legacy_recv=True)
+        try:
+            loop.run_until_complete(self.server)
+            loop.run_forever()
+        except KeyboardInterrupt:
+            loop.stop()
+            loop.close()
+
+    async def handler(self, websocket, path):
+        self.websocket = websocket
+        print('websocket', path)
+        raw_data = await websocket.recv()
+        print('RAW DATA', raw_data)
+        data = json.loads(raw_data)
+        reply = json.dumps(self.route_action(data))
+        await self.websocket.send(reply);
 
     def create_room_uuid():
         while True:
@@ -55,14 +73,6 @@ class WebsocketServer:
         else:
             return None
 
-    async def handler(self, websocket, path):
-        self.websocket = websocket
-        raw_data = await websocket.recv()
-        data = json.loads(raw_data)
-        reply = json.dumps(self.route_action(data))
-        await self.websocket.send(reply);
-
-
     def route_action(self, req):
         if req.action == 'create-room':
             res = self.create_room(req)
@@ -79,6 +89,7 @@ class WebsocketServer:
             }
 
     def create_room(self, req):
+        print('CREATING ROOM')
         room_code = self.create_room_uuid()
         new_room = {
             data: {
@@ -146,3 +157,6 @@ class WebsocketServer:
         }
         await socket.send(json.dumps(msg))
         return res
+
+if __name__ == '__main__':
+    w = WebsocketServer()

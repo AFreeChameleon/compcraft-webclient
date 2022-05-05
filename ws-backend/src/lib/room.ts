@@ -4,6 +4,32 @@ const roomList: any = {
 
 }
 
+export const addHeartbeat = (roomCode: string, serverSocket: any) => {
+    try {
+        setInterval(() => {
+            serverSocket.send(JSON.stringify({
+                action: 'get-time',
+                roomCode: roomCode
+            }))
+        }, 10000);
+    } catch (err) {
+
+    }
+}
+
+export const addClientHeartbeat = (roomCode: string, clientSocket: any) => {
+    try {
+        setInterval(() => {
+            clientSocket.send(JSON.stringify({
+                action: 'ping',
+                roomCode: roomCode
+            }))
+        }, 5000)
+    } catch (err) {
+
+    }
+}
+
 const createRoomUUID = () => {
     let uuid = crypto.randomBytes(4).toString('hex');
     while (Object.keys(roomList).includes(uuid)) {
@@ -45,6 +71,48 @@ export const getServerSocket = (roomCode: string) => {
 }
 
 export const getClientSocket = (roomCode: string) => {
-    const serverSocket = roomList[roomCode].connections.find((c: any) => c.type === 'client');
-    return serverSocket;
+    const clientSocket = roomList[roomCode].connections.find((c: any) => c.type === 'client');
+    return clientSocket;
 }
+
+const getSockets = () => {
+    const roomCodes = Object.keys(roomList);
+    let connections: any[] = [];
+    console.log(roomCodes);
+    for (const code of roomCodes) {
+        console.log(code);
+        connections = [
+            ...connections,
+            ...roomList[code].connections.map((c: any) => ({roomCode: code, socket: c}))
+        ]
+    }
+    return connections;
+}
+
+const removeSocket = (socket: any, roomCode: string) => {
+    roomList[roomCode].connections = 
+        roomList[roomCode].connections.filter((c: any) => c.id !== socket.id);
+}
+
+const sendPing = (socket: any) => {
+    socket.is_alive = true;
+    socket.send(JSON.stringify({
+        action: 'ping'
+    }));
+}
+
+// Heartbeat check
+setInterval(() => {
+    const sockets = getSockets();
+    sockets.forEach(({socket, roomCode}) => {
+        if (!socket.socket.is_alive) {
+            socket.socket.terminate();
+            removeSocket(socket.socket, roomCode);
+        }
+        if (roomList[roomCode].connections.length === 0) {
+            delete roomList[roomCode];
+        }
+        socket.socket.is_alive = false;
+        sendPing(socket.socket);
+    });
+}, 10000);
