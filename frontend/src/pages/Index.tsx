@@ -76,6 +76,7 @@ function Index() {
                 </SubTitle>
                 <form action="/" method="GET" onSubmit={enterRoom}>
                     <RoomCodeInput 
+                        autoFocus
                         placeholder="Enter room code..." 
                         onChange={(e) => setRoomCode(e.target.value)} 
                     />

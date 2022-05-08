@@ -6,6 +6,7 @@ import fuzzysort from 'fuzzysort';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 
+import store from '../../redux/store';
 import { 
   deleteWindow,
   setWindowPosition,
@@ -29,7 +30,9 @@ import {
 } from './WindowTemplates';
 import MinecraftWebSocket from '../../lib/MinecraftWebSocket';
 import { Disk as DiskType, File, FilesWindow } from '../../redux/files/types';
+
 import withZIndex from './withZIndex';
+import FilesContextMenu from './contextmenu/FilesContextMenu';
 
 const FilesMain = styled.div`
   width: 100%;
@@ -162,6 +165,21 @@ const DirectorySearchInput = styled.input`
   font-size: 14px;
 `;
 
+const WindowMenu = styled.div`
+  position: absolute;
+  width: 200px;
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+`;
+
+const WindowMenuItem = styled.div`
+  padding: 5px 8px;
+  font-size: 14px;
+  &:hover {
+    background-color: #e5e5e5;
+  }
+`;
+
 type FilesProps = {
   files: any;
   ws: MinecraftWebSocket;
@@ -181,6 +199,12 @@ type FilesProps = {
 
 type FilesState = {
   search: string;
+
+  contextMenu: {
+    open: boolean;
+    top: number;
+    left: number
+  }
 }
 
 class Files extends React.Component<FilesProps, FilesState> {
@@ -188,7 +212,12 @@ class Files extends React.Component<FilesProps, FilesState> {
       super(props);
 
       this.state = {
-        search: ''
+        search: '',
+        contextMenu: {
+          open: false,
+          top: 0,
+          left: 0
+        }
       }
 
       this.onMaximiseClick = this.onMaximiseClick.bind(this);
@@ -207,7 +236,7 @@ class Files extends React.Component<FilesProps, FilesState> {
 
     componentDidMount() {
       const { ws, files } = this.props;
-      ws.getFilesData(files.id, files.currentPath);
+      ws.getFilesData(files.currentPath);
     }
 
     onMinimiseClick(e) {
@@ -294,7 +323,7 @@ class Files extends React.Component<FilesProps, FilesState> {
       const { files, ws, dispatchSetCurrentPath } = this.props;
       console.log(path)
       dispatchSetCurrentPath(files.id, path);
-      ws.getFilesData(files.id, path);
+      ws.getFilesData(path);
     }
 
     dblClickDisk(e, path: string) {
@@ -317,7 +346,6 @@ class Files extends React.Component<FilesProps, FilesState> {
     getImgUrlByType(file: File) {
       const { disks } = this.props;
       if (file.directory) {
-        console.log(disks, file)
         if (disks.map(d => d.path).includes(file.name)) {
           return '/img/disk-drive.png';
         }
@@ -351,20 +379,30 @@ class Files extends React.Component<FilesProps, FilesState> {
           { keys: ['name', 'path'] }
         );
         if (fuzzyResult.length > 0) {
-          return fuzzyResult.map((f: any, i) => {console.log(f);return f ? (
-            <FilesListItem onClick={(e) => this.dblClickFile(e, f.obj)} key={i}>
+          return fuzzyResult.map((f: any, i) => f ? (
+            <FilesListItem 
+              key={i} 
+              onClick={(e) => this.dblClickFile(e, f.obj)} 
+              className={`file-item file-item-${f.obj.directory ? 'directory' : 'file'}`}
+              id={`file-item-name-${f.obj.name}`}
+            >
               <FilesListItemIcon src={this.getImgUrlByType(f.obj)} alt="Folder"/>
               <FilesListItemText>
                 {f.obj.name}
               </FilesListItemText>
             </FilesListItem>
-          ) : null})
+          ) : null)
         } 
         return null;
       }
-
+      
       return files.structure.map((f: any, i) => (
-        <FilesListItem onClick={(e) => this.dblClickFile(e, f)} key={i}>
+        <FilesListItem 
+          key={i} 
+          onClick={(e) => this.dblClickFile(e, f)} 
+          className={`file-item file-item-${f.directory ? 'directory' : 'file'}`} 
+          id={`file-item-name-${f.name}`}
+        >
           <FilesListItemIcon src={this.getImgUrlByType(f)} alt="Folder"/>
           <FilesListItemText>
             {f.name}
@@ -374,7 +412,8 @@ class Files extends React.Component<FilesProps, FilesState> {
     }
 
     render() {
-      const { files, disks, dispatchSetCurrentPath } = this.props;
+      const { files, ws, disks, dispatchSetCurrentPath } = this.props;
+      const { contextMenu } = this.state;
       return files.state !== 'minimised' ? (
         <Draggable
           handle={`#files-header-${files.id}`}
@@ -416,7 +455,7 @@ class Files extends React.Component<FilesProps, FilesState> {
                 <WindowButton className="exit" onClick={this.onExitClick}></WindowButton>
               </WindowOptions>
             </WindowHeader>
-            <WindowBody>
+            <WindowBody id={`files-${files.id}`}>
               <FilesMain>
                 <Main>
                   <DirectoryHeader>
@@ -449,6 +488,7 @@ class Files extends React.Component<FilesProps, FilesState> {
                   </FilesList>
                 </Main>
               </FilesMain>
+              <FilesContextMenu files={files} ws={ws} />
             </WindowBody>
           </Resizable>
         </Draggable>

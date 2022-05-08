@@ -35,8 +35,10 @@ const Shortcut = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 5px 0;
+  border: 1px solid transparent;
   &:hover {
-    background-color: blue;
+    background-color: #00AF0021;
+    border: 1px solid #00AF00;
   }
 `;
 

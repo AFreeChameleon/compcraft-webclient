@@ -34,10 +34,9 @@ local function routeAction(req)
             ["action"] = 'ping'
         }))
     elseif req.action == 'get-files-data' then
-        local path = req.data.currentPath
+        local path = req.data.path
         local dirItems = fs.list(path)
         local files = {}
-        print(textutils.serialize(dirItems))
         for _, dirItem in pairs(dirItems) do
             table.insert(
                 files,
@@ -53,12 +52,12 @@ local function routeAction(req)
             ["data"] = {
                 ["structure"] = files,
                 ["disks"] = getDiskData(),
-                ["id"] = req.data.id
+                ["path"] = path
             }
         }))
     elseif req.action == 'get-time' then
-        local time = textutils.formatTime(os.time())
-        local date = os.date("%d/%m/%Y")
+        local time = os.time()
+        local date = os.day("ingame")
         ws.send(json.encode({
             ["action"] = "set-time",
             ["roomCode"] = req.roomCode,
@@ -67,6 +66,30 @@ local function routeAction(req)
                 ["date"] = date
             }
         }))
+    elseif req.action == 'create-file' then
+        local path = req.data.path
+        local fileName = req.data.fileName
+
+        if fs.exists(path .. fileName) then
+            ws.send(json.encode({
+                ["action"] = "create-file-response",
+                ["status"] = "Failed",
+                ["roomCode"] = req.roomCode,
+                ["data"] = {
+                    ["message"] = "File already exists."
+                }
+            })) 
+        else
+            local file = fs.open(path .. fileName, "w")
+            file.close()
+            ws.send(json.encode({
+                ["action"] = "refresh-file-data",
+                ["roomCode"] = req.roomCode,
+                ["data"] = {
+                    ["path"] = path
+                }
+            }))
+        end
     end
 end
 

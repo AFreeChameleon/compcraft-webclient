@@ -70,9 +70,9 @@ export const getServerSocket = (roomCode: string) => {
     return serverSocket;
 }
 
-export const getClientSocket = (roomCode: string) => {
-    const clientSocket = roomList[roomCode].connections.find((c: any) => c.type === 'client');
-    return clientSocket;
+export const getClientSockets = (roomCode: string) => {
+    const clientSockets = roomList[roomCode].connections.filter((c: any) => c.type === 'client');
+    return clientSockets;
 }
 
 const getSockets = () => {
@@ -95,7 +95,6 @@ const removeSocket = (socket: any, roomCode: string) => {
 }
 
 const sendPing = (socket: any) => {
-    socket.is_alive = true;
     socket.send(JSON.stringify({
         action: 'ping'
     }));
@@ -105,14 +104,18 @@ const sendPing = (socket: any) => {
 setInterval(() => {
     const sockets = getSockets();
     sockets.forEach(({socket, roomCode}) => {
+        console.log(socket.socket.is_alive, socket.type)
         if (!socket.socket.is_alive) {
             socket.socket.terminate();
             removeSocket(socket.socket, roomCode);
+            
         }
-        if (roomList[roomCode].connections.length === 0) {
-            delete roomList[roomCode];
+        if (roomList[roomCode]) {
+            if (roomList[roomCode].connections.length === 0) {
+                delete roomList[roomCode];
+            }
+            socket.socket.is_alive = false;
+            sendPing(socket.socket);
         }
-        socket.socket.is_alive = false;
-        sendPing(socket.socket);
     });
 }, 10000);

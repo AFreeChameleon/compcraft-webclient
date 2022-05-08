@@ -2,28 +2,65 @@ import {
     addRoom,
     addConnection,
     getServerSocket,
-    getClientSocket,
+    getClientSockets,
     getRoomList,
     addHeartbeat,
     addClientHeartbeat
 } from "./room";
 
-export const setTime = (req: any, socket: any) => {
-    const { time } = req.data;
+export const refreshFiles = (req: any, socket: any) => {
     const roomCode = req.roomCode;
-    const clientSocket = getClientSocket(roomCode);
-    if (!clientSocket) {
-        console.log('No client');
-        return;
+    const clientSockets = getClientSockets(roomCode);
+    console.log('req', req)
+    for (const clientSocket of clientSockets) {
+        clientSocket.socket.send(JSON.stringify({
+            action: 'refresh-file-data',
+            roomCode: roomCode,
+            data: {
+                path: req.data.path
+            }
+        }));
     }
-    clientSocket.socket.send(JSON.stringify({
-        status: 'success',
-        action: 'set-time',
+}
+
+export const createFile = (req: any, socket: any) => {
+    const { path, fileName } = req.data;
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
         roomCode: roomCode,
+        action: 'create-file',
         data: {
-            time: time
+            path: path,
+            fileName: fileName
         }
     }));
+}
+
+export const getTime = (req: any, socket: any) => {
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
+        roomCode: roomCode,
+        action: 'get-time'
+    }));
+}
+
+export const setTime = (req: any, socket: any) => {
+    const { time, date } = req.data;
+    const roomCode = req.roomCode;
+    const clientSockets = getClientSockets(roomCode);
+    for (const clientSocket of clientSockets) {
+        clientSocket.socket.send(JSON.stringify({
+            status: 'success',
+            action: 'set-time',
+            roomCode: roomCode,
+            data: {
+                time: time,
+                date: date
+            }
+        }));
+    }
 }
 
 export const ping = (req: any, socket: any) => {
@@ -68,23 +105,25 @@ export const getFilesData = (req: any, socket: any) => {
         roomCode: roomCode,
         data: {
             id: req.data.id,
-            currentPath: req.data.currentPath
+            path: req.data.path
         }
     }));
 }
 
 export const setFilesData = (req: any, socket: any) => {
-    const { structure, disks, id } = req.data;
+    const { structure, disks, path } = req.data;
     const roomCode = req.roomCode;
     console.log('SETFILESDATA', roomCode, req)
-    const clientSocket = getClientSocket(roomCode).socket;
-    clientSocket.send(JSON.stringify({
-        action: 'set-files-data',
-        roomCode: roomCode,
-        data: {
-            structure: structure,
-            disks: disks,
-            id: id
-        }
-    }));
+    const clientSockets = getClientSockets(roomCode);
+    for (const clientSocket of clientSockets) {
+        clientSocket.socket.send(JSON.stringify({
+            action: 'set-files-data',
+            roomCode: roomCode,
+            data: {
+                structure: structure,
+                disks: disks,
+                path: path
+            }
+        }));
+    }
 }

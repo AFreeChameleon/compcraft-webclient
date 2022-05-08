@@ -3,8 +3,11 @@ import {
     getFilesData, 
     joinRoom, 
     setFilesData, 
+    getTime,
     setTime, 
-    ping 
+    ping,
+    createFile,
+    refreshFiles
 } from "./controllers";
 
 export const routeAction = (req: any, socket: any) => {
@@ -22,8 +25,17 @@ export const routeAction = (req: any, socket: any) => {
             case 'set-files-data':
                 setFilesData(req, socket);
                 break;
+            case 'get-time':
+                getTime(req, socket);
+                break;
             case 'set-time':
                 setTime(req, socket);
+                break;
+            case 'create-file':
+                createFile(req, socket);
+                break;
+            case 'refresh-file-data':
+                refreshFiles(req, socket);
                 break;
             case 'ping':
                 ping(req, socket);
