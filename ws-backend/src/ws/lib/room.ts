@@ -105,12 +105,11 @@ setInterval(() => {
     const sockets = getSockets();
     sockets.forEach(({socket, roomCode}) => {
         console.log(socket.socket.is_alive, socket.type)
-        if (!socket.socket.is_alive) {
-            socket.socket.terminate();
-            removeSocket(socket.socket, roomCode);
-            
-        }
         if (roomList[roomCode]) {
+            if (!socket.socket.is_alive) {
+                socket.socket.terminate();
+                removeSocket(socket.socket, roomCode);
+            }
             if (roomList[roomCode].connections.length === 0) {
                 delete roomList[roomCode];
             }

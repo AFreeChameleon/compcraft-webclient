@@ -57,6 +57,14 @@ const ModalInput = styled.input`
   margin-top: 40px;
 `;
 
+const ModalText = styled.div`
+  margin-top: 50px;
+  outline: none;
+  font-size: 16px;
+  padding: 0 10px;
+  margin-top: 40px;
+`;
+
 const FlexGrow = styled.div`
   flex-grow: 1;
 `;
@@ -89,13 +97,17 @@ type FilesContextMenuState = {
         values: {
           newFile: string;
           newFolder: string;
+          renameDest: string;
         }
     };
     contextMenu: {
       open: boolean;
       top: number;
       left: number;
-      type: 'window' | 'dirItemFolder' | 'dirItemFile' | null;
+      type: 'window' | 
+        'dirItemFolder' | 
+        'dirItemFile' | 
+        null;
       selectedFile?: {
         name: string;
         isDir: boolean;
@@ -113,7 +125,8 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
                 type: null,
                 values: {
                   newFile: '',
-                  newFolder: ''
+                  newFolder: '',
+                  renameDest: ''
                 }
             },
             contextMenu: {
@@ -130,6 +143,10 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
         this.renderContextMenu = this.renderContextMenu.bind(this);
         this.renderModal = this.renderModal.bind(this);
         this.createFile = this.createFile.bind(this);
+        this.createFolder = this.createFolder.bind(this);
+        this.deleteItem = this.deleteItem.bind(this);
+        this.renameItem = this.renameItem.bind(this);
+        this.openFile = this.openFile.bind(this);
     }
 
     componentDidMount() {
@@ -179,14 +196,14 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
         });
         window.addEventListener('mousedown', (e) => {
           const contextMenuEl = document.getElementById(`files-${files.id}-contextmenu`);
+          const { contextMenu } = this.state;
           if (contextMenuEl) {
             this.setState({
               contextMenu: {
+                ...contextMenu,
                 open: false,
                 top: 0,
                 left: 0,
-                type: null,
-                selectedFile: null
               }
             })
           }
@@ -246,10 +263,38 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
                 top: contextMenu.top + 'px',
                 left: contextMenu.left + 'px'
             }}>
-                <WindowMenuItem>Open</WindowMenuItem>
+                <WindowMenuItem onMouseDown={this.openFile}>Open</WindowMenuItem>
                 {!folder && <WindowMenuItem>Edit</WindowMenuItem>}
-                <WindowMenuItem>Rename</WindowMenuItem>
-                <WindowMenuItem>Delete</WindowMenuItem>
+                <WindowMenuItem
+                  onMouseDown={(e) => {
+                    this.setState({
+                      modal: {
+                        ...modal,
+                        open: true,
+                        type: 'rename',
+                        values: {
+                          ...modal.values,
+                          renameDest: contextMenu.selectedFile.name
+                        }
+                      }
+                    });
+                  }}
+                >
+                  Rename
+                </WindowMenuItem>
+                <WindowMenuItem
+                  onMouseDown={(e) => {
+                    this.setState({
+                      modal: {
+                        ...modal,
+                        open: true,
+                        type: 'delete'
+                      }
+                    });
+                  }}
+                >
+                  Delete
+                </WindowMenuItem>
             </WindowMenu>
         );
     }
@@ -265,7 +310,7 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
         }
     }
 
-    setModalValue(key: 'newFile' | 'newFolder', value: any) {
+    setModalValue(key: 'newFile' | 'newFolder' | 'renameDest', value: any) {
       const { modal } = this.state;
 
       this.setState({
@@ -283,10 +328,10 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
       e.preventDefault();
       const { files, ws } = this.props;
       const { modal } = this.state;
-      const fileName = modal.values.newFile;
+      const fileName = modal.values.newFile || 'Untitled';
       const path = files.currentPath;
       
-      ws.createFile(path, fileName || 'Untitled');
+      ws.createFile(path, fileName);
       this.setState({
         modal: {
           ...modal,
@@ -295,8 +340,70 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
       });
     }
 
+    createFolder(e) {
+      e.preventDefault();
+      const { files, ws } = this.props;
+      const { modal } = this.state;
+      const folderName = modal.values.newFolder || 'Untitled';
+      const path = files.currentPath;
+
+      ws.createFolder(path, folderName);
+      this.setState({
+        modal: {
+          ...modal,
+          open: false
+        }
+      })
+    }
+
+    deleteItem(e) {
+      e.preventDefault();
+      const { files, ws } = this.props;
+      const { modal, contextMenu } = this.state;
+      
+      ws.deleteItem(
+        files.currentPath, 
+        contextMenu.selectedFile.name, 
+        contextMenu.selectedFile.isDir
+      );
+      this.setState({
+        modal: {
+          ...modal,
+          open: false
+        }
+      })
+    }
+
+    renameItem(e) {
+      e.preventDefault();
+      const { files, ws } = this.props;
+      const { modal, contextMenu } = this.state;
+      
+      ws.renameItem(
+        files.currentPath,
+        contextMenu.selectedFile.name,
+        files.currentPath,
+        modal.values.renameDest
+      );
+      this.setState({
+        modal: {
+          ...modal,
+          open: false
+        }
+      })
+    }
+
+    openFile(path: string) {
+      const { files, ws } = this.props;
+      const { modal, contextMenu } = this.state;
+      console.log(`${files.currentPath}${contextMenu.selectedFile.name}`)
+      ws.downloadFiles([`${files.currentPath}${contextMenu.selectedFile.name}`])
+    }
+
     renderModal() {
-      const type = this.state.modal.type;
+      const { modal, contextMenu } = this.state;
+      const type = modal.type;
+      const values = modal.values;
       if (type === 'newFile') {
         return (
           <Modal action="/" method="POST" onSubmit={this.createFile}>
@@ -313,21 +420,44 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
         );
       } else if (type === 'newFolder') {
         return (
-          <Modal action="/" method="POST">
+          <Modal action="/" method="POST" onSubmit={this.createFolder}>
             <ModalTitle>New Folder</ModalTitle>
             <ModalInput 
-              ref={inputElement => {
-                // constructs a new function on each render
-                if (inputElement) {
-                  inputElement.select();
-                }
-              }}
+              autoFocus
+              // ref={inputElement => {
+              //   // constructs a new function on each render
+              //   if (inputElement) {
+              //     inputElement.select();
+              //   }
+              // }}
               placeholder="Folder name..." 
               defaultValue="Untitled" 
-              onChange={(e) => this.setModalValue('newFile', e.target.value)} 
+              onChange={(e) => this.setModalValue('newFolder', e.target.value)} 
             />
             <FlexGrow />
             <ModalButton type="submit">New</ModalButton>
+          </Modal>
+        )
+      } else if (type === 'delete') {
+        return (
+          <Modal action="/" method="POST" onSubmit={this.deleteItem}>
+            <ModalTitle>Delete File</ModalTitle>
+            <ModalText>Are you sure you want to delete {contextMenu.selectedFile.name}?</ModalText>
+            <FlexGrow />
+            <ModalButton type="submit">Delete</ModalButton>
+          </Modal>
+        );
+      } else if (type === 'rename') {
+        return (
+          <Modal action="/" method="POST" onSubmit={this.renameItem}>
+            <ModalTitle>Rename "{contextMenu.selectedFile.name}"</ModalTitle>
+            <ModalInput
+              placeholder="New path..." 
+              defaultValue={contextMenu.selectedFile.name}
+              onChange={(e) => this.setModalValue('renameDest', e.target.value)} 
+            />
+            <FlexGrow />
+            <ModalButton type="submit">Rename</ModalButton>
           </Modal>
         )
       }
@@ -336,7 +466,6 @@ class FilesContextMenu extends React.Component<FilesContextMenuProps, FilesConte
     render() {
         const { files } = this.props;
         const { contextMenu, modal } = this.state;
-
         return <>
             {contextMenu.open && this.renderContextMenu()}
             {modal.open && (

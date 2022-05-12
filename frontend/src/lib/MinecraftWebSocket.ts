@@ -31,8 +31,53 @@ class MinecraftWebSocket {
         this.socket.addEventListener('message', this.routeAction.bind(this));
     }
 
+    public downloadFiles(paths: string[]) {
+        this.socket.send(JSON.stringify({
+            action: 'upload-files',
+            roomCode: this.roomCode,
+            data: {
+                paths: paths
+            }
+        }));
+    }
+
+    public renameItem(path: string, originalName: string, dest: string, destName: string) {
+        this.socket.send(JSON.stringify({
+            action: 'rename-item',
+            roomCode: this.roomCode,
+            data: {
+                path: path,
+                dest: dest,
+                originalName: originalName,
+                destName: destName
+            }
+        }))
+    }
+
+    public deleteItem(path: string, fileName: string, isDir: boolean = false) {
+        this.socket.send(JSON.stringify({
+            action: 'delete-item',
+            roomCode: this.roomCode,
+            data: {
+                path: path,
+                fileName: fileName,
+                isDir: isDir
+            }
+        }));
+    }
+
+    public createFolder(path: string, folderName: string) {
+        this.socket.send(JSON.stringify({
+            action: 'create-folder',
+            roomCode: this.roomCode,
+            data: {
+                path: path,
+                folderName: folderName
+            }
+        }));
+    }
+
     public createFile(path: string, fileName: string) {
-        console.log(path, fileName);
         this.socket.send(JSON.stringify({
             action: 'create-file',
             roomCode: this.roomCode,
@@ -123,9 +168,18 @@ class MinecraftWebSocket {
     private refreshAllFiles(req: any) {
         const filesWindows = store.getState().files.windows;
         console.log('req', req)
-        for (const filesWindow of filesWindows) {
-            if (req.data.path === filesWindow.currentPath) {
-                this.getFilesData(req.data.path);
+        if (typeof req.data.path === 'string') {
+            for (const filesWindow of filesWindows) {
+                if (req.data.path === filesWindow.currentPath) {
+                    this.getFilesData(req.data.path);
+                }
+            }
+        } else {
+            for (const filesWindow of filesWindows) {
+                const foundPath = req.data.path.find((p) => p === filesWindow.currentPath)
+                if (foundPath) {
+                    this.getFilesData(foundPath);
+                }
             }
         }
     }

@@ -7,7 +7,12 @@ import {
     setTime, 
     ping,
     createFile,
-    refreshFiles
+    createFileResponse,
+    createFolder,
+    renameItem,
+    deleteItem,
+    refreshFiles,
+    uploadFiles
 } from "./controllers";
 
 export const routeAction = (req: any, socket: any) => {
@@ -34,8 +39,23 @@ export const routeAction = (req: any, socket: any) => {
             case 'create-file':
                 createFile(req, socket);
                 break;
+            case 'create-file-response':
+                createFileResponse(req, socket);
+                break;
+            case 'create-folder':
+                createFolder(req, socket);
+                break;
+            case 'delete-item':
+                deleteItem(req, socket);
+                break;
+            case 'rename-item':
+                renameItem(req, socket);
+                break;
             case 'refresh-file-data':
                 refreshFiles(req, socket);
+                break;
+            case 'upload-files':
+                uploadFiles(req, socket);
                 break;
             case 'ping':
                 ping(req, socket);

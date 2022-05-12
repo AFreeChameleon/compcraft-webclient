@@ -8,6 +8,19 @@ import {
     addClientHeartbeat
 } from "./room";
 
+export const uploadFiles = (req: any, socket: any) => {
+    const { paths } = req.data;
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
+        roomCode: roomCode,
+        action: 'upload-files',
+        data: {
+            paths: paths,
+        }
+    }));
+}
+
 export const refreshFiles = (req: any, socket: any) => {
     const roomCode = req.roomCode;
     const clientSockets = getClientSockets(roomCode);
@@ -23,6 +36,51 @@ export const refreshFiles = (req: any, socket: any) => {
     }
 }
 
+export const renameItem = (req: any, socket: any) => {
+    const { path, dest, originalName, destName } = req.data;
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
+        roomCode: roomCode,
+        action: 'rename-item',
+        data: {
+            path: path,
+            dest: dest,
+            originalName: originalName,
+            destName: destName
+        }
+    }));
+}
+
+export const deleteItem = (req: any, socket: any) => {
+    const { path, fileName, isDir } = req.data;
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
+        roomCode: roomCode,
+        action: 'delete-item',
+        data: {
+            path: path,
+            fileName: fileName,
+            isDir: isDir
+        }
+    }));
+}
+
+export const createFolder = (req: any, socket: any) => {
+    const { path, folderName } = req.data;
+    const roomCode = req.roomCode;
+    const serverSocket = getServerSocket(roomCode).socket;
+    serverSocket.send(JSON.stringify({
+        roomCode: roomCode,
+        action: 'create-folder',
+        data: {
+            path: path,
+            folderName: folderName
+        }
+    }));
+}
+
 export const createFile = (req: any, socket: any) => {
     const { path, fileName } = req.data;
     const roomCode = req.roomCode;
@@ -35,6 +93,11 @@ export const createFile = (req: any, socket: any) => {
             fileName: fileName
         }
     }));
+}
+
+export const createFileResponse  =(req: any, socket: any) => {
+    // on fail of creating file
+    const roomCode = req.roomCode;
 }
 
 export const getTime = (req: any, socket: any) => {
